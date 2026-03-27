@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -427,24 +427,6 @@
     <h1>海外領収書<br>日本語変換ツール</h1>
     <p class="subtitle">領収書の写真をアップロードするだけで、経理用の日本語フォーマットに変換します</p>
   </header>
-
-  <!-- API Key Section -->
-  <div id="apikey-section" style="margin-bottom:24px; background:white; border:1px solid var(--line); border-radius:4px; padding:18px 24px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="toggleApiKey()">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--stamp)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span style="font-size:12px; font-weight:700; letter-spacing:0.08em; color:var(--ink-light); font-family:'Noto Sans JP',sans-serif;">ANTHROPIC API KEY</span>
-        <span id="apikey-status" style="font-size:11px; font-family:'DM Mono',monospace; color:#3A7C5A; display:none;">✓ 設定済み</span>
-      </div>
-      <span id="apikey-toggle-icon" style="font-size:11px; color:var(--ink-light); font-family:'DM Mono',monospace;">▲</span>
-    </div>
-    <div id="apikey-body" style="margin-top:12px;">
-      <div style="display:flex; gap:8px;">
-        <input type="password" id="apikey-input" placeholder="sk-ant-api03-..." style="flex:1; border:1px solid var(--line); border-radius:2px; padding:10px 14px; font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); color:var(--ink); outline:none; transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--stamp)'" onblur="this.style.borderColor='var(--line)'">
-        <button onclick="saveApiKey()" style="background:var(--stamp); color:white; border:none; padding:10px 18px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:700; cursor:pointer; border-radius:2px; white-space:nowrap; transition:background 0.15s;" onmouseover="this.style.background='#B04F31'" onmouseout="this.style.background='var(--stamp)'">保存</button>
-      </div>
-      <p style="margin-top:8px; font-size:11px; color:var(--ink-light); font-weight:300;">キーはこのブラウザにのみ保存されます（localStorage）。<a href="https://console.anthropic.com/" target="_blank" style="color:var(--stamp); text-decoration:none;">Anthropic Console</a> で取得できます。</p>
-    </div>
   </div>
 
   <!-- Upload -->
@@ -534,46 +516,7 @@
 let currentImageBase64 = null;
 let currentMediaType = null;
 
-// --- API Key ---
-function saveApiKey() {
-  const key = document.getElementById('apikey-input').value.trim();
-  if (!key.startsWith('sk-')) {
-    alert('APIキーは sk- で始まる必要があります。');
-    return;
-  }
-  localStorage.setItem('anthropic_api_key', key);
-  document.getElementById('apikey-status').style.display = 'inline';
-  document.getElementById('apikey-input').value = '';
-  // 保存後は折りたたむ
-  document.getElementById('apikey-body').style.display = 'none';
-  document.getElementById('apikey-toggle-icon').textContent = '▼';
-}
 
-function getApiKey() {
-  return localStorage.getItem('anthropic_api_key') || '';
-}
-
-// 起動時に設定済み表示
-window.addEventListener('DOMContentLoaded', () => {
-  if (getApiKey()) {
-    document.getElementById('apikey-status').style.display = 'inline';
-    // 設定済みなら折りたたむ
-    document.getElementById('apikey-body').style.display = 'none';
-    document.getElementById('apikey-toggle-icon').textContent = '▼';
-  }
-});
-
-function toggleApiKey() {
-  const body = document.getElementById('apikey-body');
-  const icon = document.getElementById('apikey-toggle-icon');
-  if (body.style.display === 'none') {
-    body.style.display = 'block';
-    icon.textContent = '▲';
-  } else {
-    body.style.display = 'none';
-    icon.textContent = '▼';
-  }
-}
 
 // Upload zone
 const zone = document.getElementById('upload-zone');
@@ -650,16 +593,10 @@ async function analyzeReceipt() {
     : { type: 'image', source: { type: 'base64', media_type: currentMediaType, data: currentImageBase64 } };
 
   try {
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      throw new Error('APIキーが設定されていません。上の入力欄に Anthropic API キーを入力して「保存」してください。');
-    }
-
     const response = await fetch('/api/proxy', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
